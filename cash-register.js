@@ -34,14 +34,11 @@ function checkCashRegister(price, cash, cid) {
   }
 
   const cashInDrawer = findValue(cid);
-  // console.log("cash in drawer", cashInDrawer);
-
-  // Working out how to work the drawer object to get values out
-  // console.log("locate value", cashInDrawer[0].unitOfSlot);
+  // console.log("cash in drawer", cashInDrawer, typeof cashInDrawer);
 
   // How much change should be given?
-  let changeDue = cash - price;
-  // console.log("Total amount of change to be paid out", changeDue);
+  let TotalChange = cash - price;
+  // console.log("Total amount of change to be paid out", TotalChange,  typeof TotalChange);
 
   // Work out total amount in drawer
   const amountInDrawer = [];
@@ -51,33 +48,35 @@ function checkCashRegister(price, cash, cid) {
     (accumulator, currentValue) => accumulator + currentValue,
     initialValue
   );
-  // console.log("Total amount of money in the drawer", totalInDrawer);
+  // console.log("Total amount of money in the drawer", totalInDrawer, typeof totalInDrawer);
 
   // If total amount in drawer is less than the change owed, then it's an automatic out
-  if (totalInDrawer < changeDue) {
+  if (totalInDrawer < TotalChange) {
     return { status: "INSUFFICIENT_FUNDS", change: change };
   }
 
   // Reverse the cash in drawer array of objects so that it is easier to loop through from highest to lowest.
   let reversedCashInDrawer = cashInDrawer.reverse();
-  console.log("Reversed cash in drawer", reversedCashInDrawer);
+  console.log(
+    "Reversed cash in drawer",
+    reversedCashInDrawer,
+    typeof reversedCashInDrawer
+  );
 
   // Write function to loop through cash in drawer to remove required change and push change into change array
-  function makeChange(changeOwed, drawer) {
-    if (Number(changeOwed) === 0) {
+  function makeChange(changeDue, drawer) {
+    if (changeDue === 0 && totalInDrawer > TotalChange) {
       return { status: "OPEN", change: change };
+    } else if (changeDue === 0 && totalInDrawer === TotalChange) {
+      return { status: "CLOSED", change: change };
     } else {
-      let index;
-
-      drawer.find((slot, i) => {
-        Number(changeOwed) >= Number(slot.unitOfSlot) &&
-          Number(slot.countItemsInSlot) != 0;
-        index = i;
+      const index = drawer.findIndex((slot) => {
+        changeDue >= slot.unitOfSlot && slot.countItemsInSlot > 0;
       });
 
-      let highestSlot = drawer[index];
+      const highestSlot = drawer[index];
 
-      console.log("highest unit", index, highestSlot);
+      console.log("highest unit", index, highestSlot, typeof highestSlot);
 
       // need to check if highestSlot already exists in change array, then add one to already exitsing count
 
@@ -85,16 +84,16 @@ function checkCashRegister(price, cash, cid) {
         `${highestSlot.nameOfSlot}`,
         Number(`${highestSlot.unitOfSlot}`),
       ]);
-      console.log("change", change);
+      console.log("change", change, typeof change);
       Number(drawer[index].countItemsInSlot) - 1;
       Number(drawer[index].totalValueInSlot) - Number(drawer[index].unitOfSlot);
       // makeChange(
-      //   changeOwed - Number(highestSlot.unitOfSlot),
+      //   changeDue - Number(highestSlot.unitOfSlot),
       //   drawer
       // );
     }
   }
-  makeChange(changeDue, reversedCashInDrawer);
+  makeChange(TotalChange, reversedCashInDrawer);
 
   // console.log({ status: "final change", change: change });
 }

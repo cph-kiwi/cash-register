@@ -75,3 +75,23 @@ function sum(arr, n) {
 }
 
 // console.log(sum([2, 3, 4], 1));
+
+//
+let index;
+
+drawer.find((slot, i) => {
+  Number(changeOwed) >= Number(slot.unitOfSlot) &&
+    Number(slot.countItemsInSlot) != 0;
+  index = i;
+});
+
+let highestSlot = drawer[index];
+
+console.log("highest unit", index, highestSlot);
+
+let index = drawer.findIndex((slot) => {
+  Number(changeOwed) >= Number(slot.unitOfSlot) &&
+    Number(slot.countItemsInSlot) > 0;
+});
+
+let highestSlot = drawer[index];
