@@ -4,8 +4,6 @@
 
 // Otherwise, return {status: "OPEN", change: [...]}, with the change due in coins and bills, sorted in highest to lowest order, as the value of the change key.
 
-// const exactChange = [0.01, 0.05, 0.1, 0.25, 1, 5, 10, 20, 100];
-
 const values = [
   ["PENNY", 0.01],
   ["NICKEL", 0.05],
@@ -18,82 +16,97 @@ const values = [
   ["ONE HUNDRED", 100],
 ];
 
-function checkCashRegister(price, cash, cid) {
-  let change = [];
+// creates array of objects listing what is in the cash drawer
+function createCashDrawerSlots(cid) {
+  return cid.map((item, index) => {
+    return {
+      nameOfSlot: item[0],
+      unitOfSlot: values[index][1],
+      countItemsInSlot: Math.round(item[1] / values[index][1]),
+      totalValueInSlot: item[1],
+    };
+  });
+}
 
-  // creates array of objects listing what is in the cash drawer
-  function findValue(cid) {
-    return cid.map((item, index) => {
-      return {
-        nameOfSlot: item[0],
-        unitOfSlot: values[index][1],
-        countItemsInSlot: Math.round(item[1] / values[index][1]),
-        totalValueInSlot: item[1],
-      };
-    });
-  }
-
-  const cashInDrawer = findValue(cid);
-  // console.log("cash in drawer", cashInDrawer, typeof cashInDrawer);
-
-  // How much change should be given?
-  let TotalChange = cash - price;
-  // console.log("Total amount of change to be paid out", TotalChange,  typeof TotalChange);
-
-  // Work out total amount in drawer
+// Work out total amount in drawer
+function findTotalInDrawer(cid) {
   const amountInDrawer = [];
   cid.forEach((item) => amountInDrawer.push(item[1]));
   let initialValue = 0;
-  const totalInDrawer = amountInDrawer.reduce(
+  return amountInDrawer.reduce(
     (accumulator, currentValue) => accumulator + currentValue,
     initialValue
   );
-  // console.log("Total amount of money in the drawer", totalInDrawer, typeof totalInDrawer);
+}
+
+function checkCashRegister(price, cash, cid) {
+  let change = [];
+
+  const cashInDrawer = createCashDrawerSlots(cid);
+  // console.log("cash in drawer", cashInDrawer);
+
+  // How much change should be given?
+  let totalChange = cash - price;
+  // console.log(
+  //   "Total amount of change to be paid out",
+  //   totalChange
+  // );
+
+  const totalInDrawer = Math.round(findTotalInDrawer(cid));
+  // console.log(
+  //   "Total amount of money in the drawer",
+  //   totalInDrawer
+  // );
 
   // If total amount in drawer is less than the change owed, then it's an automatic out
-  if (totalInDrawer < TotalChange) {
-    return { status: "INSUFFICIENT_FUNDS", change: change };
+  if (totalInDrawer < totalChange) {
+    return console.log({ status: "INSUFFICIENT_FUNDS", change: change });
   }
 
   // Reverse the cash in drawer array of objects so that it is easier to loop through from highest to lowest.
   let reversedCashInDrawer = cashInDrawer.reverse();
-  console.log(
-    "Reversed cash in drawer",
-    reversedCashInDrawer,
-    typeof reversedCashInDrawer
-  );
+  // console.log("Reversed cash in drawer", reversedCashInDrawer);
 
   // Write function to loop through cash in drawer to remove required change and push change into change array
   function makeChange(changeDue, drawer) {
-    if (changeDue === 0 && totalInDrawer > TotalChange) {
-      return { status: "OPEN", change: change };
-    } else if (changeDue === 0 && totalInDrawer === TotalChange) {
-      return { status: "CLOSED", change: change };
+    if (changeDue === 0 && totalInDrawer > totalChange) {
+      return console.log({ status: "OPEN", change: change });
+    } else if (changeDue === 0 && totalInDrawer === totalChange) {
+      return console.log({ status: "CLOSED", change: change });
     } else {
-      const index = drawer.findIndex((slot) => {
-        changeDue >= slot.unitOfSlot && slot.countItemsInSlot > 0;
-      });
+      const index = drawer.findIndex(
+        (slot) => changeDue >= slot.unitOfSlot && slot.countItemsInSlot > 0
+      );
 
       const highestSlot = drawer[index];
+      // console.log("highest unit", index, highestSlot);
 
-      console.log("highest unit", index, highestSlot, typeof highestSlot);
+      // need to check if highestSlot already exists in change array, then add one unit to already exitsing count
+      const alreadyExistsInChange = (slot) =>
+        slot.nameOfSlot === highestSlot.nameOfSlot;
 
-      // need to check if highestSlot already exists in change array, then add one to already exitsing count
-
-      change.push([
-        `${highestSlot.nameOfSlot}`,
-        Number(`${highestSlot.unitOfSlot}`),
-      ]);
-      console.log("change", change, typeof change);
+      if (change.some(alreadyExistsInChange)) {
+        const changeIndex = change.findIndex(
+          (changeSlot) => changeSlot.nameOfSlot === highestSlot.nameOfSlot
+        );
+        change[changeIndex] = [
+          `${change[changeIndex][0]}`,
+          Number(`${change[changeIndex][1]}`) +
+            Number(`${highestSlot.unitOfSlot}`),
+        ];
+      } else {
+        change.push([
+          `${highestSlot.nameOfSlot}`,
+          Number(`${highestSlot.unitOfSlot}`),
+        ]);
+      }
+      // console.log("change", change);
       Number(drawer[index].countItemsInSlot) - 1;
       Number(drawer[index].totalValueInSlot) - Number(drawer[index].unitOfSlot);
-      // makeChange(
-      //   changeDue - Number(highestSlot.unitOfSlot),
-      //   drawer
-      // );
+      makeChange(changeDue - Number(highestSlot.unitOfSlot), drawer);
     }
   }
-  makeChange(TotalChange, reversedCashInDrawer);
+  makeChange(totalChange, reversedCashInDrawer);
 
   // console.log({ status: "final change", change: change });
 }
