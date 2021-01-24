@@ -1,3 +1,4 @@
+/*
 const denomination = {
   PENNY: 0.01,
   NICKEL: 0.05,
@@ -95,3 +96,23 @@ let index = drawer.findIndex((slot) => {
 });
 
 let highestSlot = drawer[index];
+*/
+
+let change = [
+  ["QUARTER", 0.25],
+  ["QUARTER", 0.25],
+];
+
+if (change.some((slot) => slot[0] === highestSlot.nameOfSlot)) {
+  const changeIndex = change.findIndex(
+    (slot) => slot[0] === highestSlot.nameOfSlot
+  );
+
+  const replacement = [
+    `${highestSlot.nameOfSlot}`,
+    Number(`${highestSlot.unitOfSlot}`) + Number(`${change[changeIndex][1]}`),
+  ];
+  console.log("replacement", replacement);
+
+  change.splice(changeIndex, 1, replacement);
+}
